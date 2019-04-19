@@ -74,3 +74,74 @@ friendly | √ | √ | × | × |
 private | √ | × | × | × |
 
 这里需要说明的是，在同一个package，public、protected、friendly使用范围一致。而在其他package中，只有子孙类中的protected才能被访问。
+
+# collections相关的数据结构及API
+1. 列举几个Java Collection类库中的常用类
+
+Collection是java.util中的一个接口，继承自Iterable。
+子接口：List、Set、Queue...
+实现类：ArrayList、LinkedList、HashSet、TreeSet、Vector、Stack
+其他相关类：Iterator、TreeMap、HashTable、HashMap
+Collection接口是最基本的集合接口，它不提供直接的实现，Java SDK提供的类都是继承自Collection的“子接口”。如List和Set。Collection所代表的是一种规则，它所包含的元素都必须遵循一条或者多条规则。如有些允许重复而有些则不能重复，有些必须要按照顺序插入而有些则是散列，有些支持排序但有些则不支持。
+
+2. List、Set、Map是否都继承自Collection接口？
+
+List、Set继承自Collection接口，而Map不是。
+
+* List所代表的是有序的Collection。实现List接口的集合主要有：ArrayList、LinkedList、Vector、Stack。
+* Set是一种不包括重复元素的Collection。实现了Set接口的集合有：EnumSet、HashSet、TreeSet。
+* Map与List、Set接口不同，它是由一系列键值对组成的集合，提供了key到value的映射。同时它也没有继承Collection。实现Map的有：HashMap、TreeMap、HashTable、Properties、EnumMap。
+
+3. HashMap和HashTable的区别。
+
+* 历史原因：HashTable是基于陈旧的Dictionary类的，HashMap是Java1.2引进的Map接口的一个实现。
+* 同步性：HashTable是线程安全的，也就是说是同步的，而HashMap是线程不安全的，不是同步的。
+* 值：只有HashMap可以将空值作为一个表的条目的key或value。
+
+* HashTable的方法是同步的，在方法的前面都有Synchronized来同步；HashMap未经同步，所以在多线程场合要手动同步。
+* HashTable不允许null值（key和value都不可以），HashMap允许null值（key和value都可以）。
+* HashTable有一个contains（Object value）功能和contaiValue（Object value）功能一样。
+* HashTable使用Enumeration进行遍历，HashMap使用Iterator进行遍历。
+* HashTable中hash数组默认大小是11，增加的方式是old*2+1。HashMap中hash数组的默认大小是16，而且一定是2的指数。
+* hash值的使用不同，HashTable直接使用对象的hashCode，代码是这样的：
+
+```java
+int hash = key.hashCode();
+int index = (hash & 0X7FFFFFFF) % tab.length;
+```
+而HashMap重新计算hash值，而且用与代替求模：
+
+```java
+int hash = hash(k);
+int i = indexFor(hash, table.length);
+static int hash(Object x) {
+    h ^= (h >>> 20) ^ (h >>> 12 );
+    return h ^ (h >>> 7) ^ (h >>> 4);
+}
+```
+
+* 延展： 
+
+### HashMap与HashSet的关系
+* HashSet底层是采用HashMap实现的
+```java
+public HashSet() {
+    map = new HashMap<E,Object>();
+}
+```        
+* 调用HashSet的add方法时，实际上是向HashMap中增加了一行（key-value对），该行的key就是向HashSet增加的那个对象，该行的value就是一个Object类型的常量。
+
+```java
+private static final Object PRESENT = new Object();
+public boolean add(E e) {
+    return map.put(e, PRESENT) == null;
+}
+
+public boolean remove(Object o) {
+    return map.remove(o) = PRESENT;
+}
+```
+
+### HashMap和ConcurrentHashMap的关系
+ConcurrentHashMap也是一种线程安全的集合类，它和HashTable也是有区别的，主要区别就是加锁的粒度以及如何加锁。ConcurrentHashMap的加锁粒度要比HashTable更细一点。将数据分成一段一段地存储，然后给每一段数据配一把锁，当一个线程占用锁访问其中一个段数据的时候，其他段的数据也能被其他线程访问。
+
